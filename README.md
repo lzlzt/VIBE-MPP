@@ -12,6 +12,8 @@ MPP). VIBE-MPP consists of two key elements, virtual
 bonding graph neural network (VBGNN) and dual-level self-
 supervised boosted pretraining(DSBP).
 
+![未标题-1modified](https://github.com/user-attachments/assets/698d3271-6fa5-48db-9fc1-c328be9fcc99)
+
 
 
 ### Prerequisites
@@ -43,7 +45,7 @@ You can pretrain the model by
 mkdir saved_model
 python pretrain.py
 ```
-![Uploading 未标题-1modified.png…]()
+
 
 
 
