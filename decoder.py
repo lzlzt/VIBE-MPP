@@ -75,7 +75,6 @@ class Model_decoder(nn.Module):
         super_group = []
         for mol_index, mol in enumerate(mol_batch):     
             super_group.append(node_rep[mol_index][-1, :]).to(self.device)
-            #每个分子的超级节点的下标都是节点的最后一个
         super_rep = torch.stack(super_group, dim=0)
         return super_rep
     
