@@ -8,8 +8,7 @@ from torch_geometric.data import Batch
 from torch_geometric.data import Data
 
 
-def get_atom_poses(mol, conf):     #最直接地获得3D坐标的方法
-        """tbd"""
+def get_atom_poses(mol, conf):   
         atom_poses = []
         for i, atom in enumerate(mol.GetAtoms()):
             if atom.GetAtomicNum() == 0:
@@ -33,7 +32,6 @@ def get_steady_mol(smiles,num):
             mol = AllChem.MolFromSmiles(smiles)
             new_mol = Chem.AddHs(mol)
             res = AllChem.EmbedMultipleConfs(mol, numConfs=num,useRandomCoords=True)
-            #这个参数可以让RDKIT无法处理的大分子也能获得一个返回值，有效避免程序报错
             res = AllChem.MMFFOptimizeMoleculeConfs(mol)
             new_mol = Chem.RemoveHs(new_mol)
             index = np.argmin([x[1] for x in res])
@@ -42,11 +40,7 @@ def get_steady_mol(smiles,num):
             mol = AllChem.MolFromSmiles(smiles)
             new_mol = Chem.AddHs(mol)
             res = AllChem.EmbedMolecule(new_mol)
-            #这个函数的返回结果为整数，而上面的那种获得异构体的形式返回的是元组，相当于index这一步用这种方法的话就不适用了
-            # res = AllChem.EmbedMultipleConfs(new_mol, numConfs=num)
-            # res = AllChem.MMFFOptimizeMoleculeConfs(new_mol)
             new_mol = Chem.RemoveHs(new_mol)
-            # index = np.argmin([x[1] for x in res])
             conf = new_mol.GetConformer(id=int(res))
     return new_mol,conf
 
@@ -98,3 +92,13 @@ def molgraph_to_graph_data(batch):
         graph_data_batch.append(data)
     new_batch = Batch().from_data_list(graph_data_batch)
     return new_batch
+
+
+def is_ring(mol, atom_idx1, atom_idx2):
+    ring_info = mol.GetRingInfo()
+    atom_rings = ring_info.AtomRings()
+    for ring in atom_rings:
+        if all(mol.GetAtomWithIdx(atom_idx).GetIsAromatic() for atom_idx in ring):
+            if atom_idx1 in ring and atom_idx2 in ring:
+                return True
+    return False
