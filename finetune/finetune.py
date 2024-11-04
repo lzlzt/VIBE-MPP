@@ -164,27 +164,22 @@ def main():
                         help='number of GNN message passing layers (default: 5).')
     parser.add_argument('--emb_dim', type=int, default=512,
                         help='embedding dimensions (default: 512)')
-    parser.add_argument('--dropout_ratio', type=float, default=0.5,
-                        help='dropout ratio (default: 0.5)')
+    parser.add_argument('--dropout_ratio', type=float, default=0.3,
+                        help='dropout ratio (default: 0.3)')
     parser.add_argument('--JK', type=str, default="last",
                         help='how the node features across layers are combined. last, sum, max or concat')
-    parser.add_argument('--gnn_type', type=str, default="gin",
-                        help='gnn_type (gat, gin, gcn, graphsage)')
+    parser.add_argument('--gnn_type', type=str, default="gin",)
     parser.add_argument('--dataset', type=str, default = 'bace', 
                         help='[bbbp, bace, sider, clintox, sider,tox21, toxcast, esol,freesolv,lipophilicity]')
-    parser.add_argument('--input_model_file', type=str, default = './saved_model/pre_noVG512.pth', help='filename to read the model (if there is any)')
+    parser.add_argument('--input_model_file', type=str, default = './saved_model/pretrain.pth', help='filename to read the model (if there is any)')
     parser.add_argument('--filename', type=str, default = '', help='output filename')
     parser.add_argument('--seed', type=int, default=0, help = "Seed for splitting the dataset.")
     parser.add_argument('--runseed', type=int, default=7, help = "Seed for minibatch selection, random initialization.")
     parser.add_argument('--split', type = str, default="scaffold", help = "random or scaffold or random_scaffold")
     parser.add_argument('--eval_train', type=int, default = 1, help='evaluating training or not')
-    # parser.add_argument('--num_workers', type=int, default = 4, help='number of workers for dataset loading')
-    parser.add_argument('--num_workers', type=int, default = 0, help='number of workers for dataset loading')
+    parser.add_argument('--num_workers', type=int, default = 4, help='number of workers for dataset loading')
     parser.add_argument('--GNN_para', type=bool, default = True, help='if the parameter of pretrain update')
     args = parser.parse_args()
-    """parser 是一个 argparse 模块中的 ArgumentParser 对象。这个对象用于定义程序可以接受的命令行参数的类型、数量以及其他相关信息。
-    parser.parse_args() 这个方法用于解析命令行参数。它会检查命令行中传递的参数，并根据你在 ArgumentParser 中定义的规则将它们解析成一个命名空间（Namespace）对象。
-    args 是接收解析后的参数的变量。通过 args 这个变量，你可以访问在命令行中传递的各种参数值，这些值按照你在 ArgumentParser 中定义的规则进行了解析。"""
 
 
     torch.manual_seed(args.runseed)
@@ -254,7 +249,6 @@ def main():
 
     #set up model
     model = GNN_graphpred(args.num_layer, args.emb_dim, num_tasks, JK = args.JK, drop_ratio = args.dropout_ratio, gnn_type = args.gnn_type)
-    # 引入预训练模型
     if not args.input_model_file == "":
         model_file = args.input_model_file
         if not torch.cuda.is_available():
