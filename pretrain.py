@@ -3,10 +3,6 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
-
-
-# import torch.multiprocessing
-# torch.multiprocessing.set_sharing_strategy('file_system')
 import rdkit
 import sys
 import logging, time
@@ -14,6 +10,7 @@ from tqdm import tqdm
 import numpy as np
 from model import GNN
 from decoder import Model_decoder  
+import pickle
 
 sys.path.append('./util/')
 
@@ -22,7 +19,7 @@ from molgraph import *
 
 
 lg = rdkit.RDLogger.logger()
-lg.setLevel(rdkit.RDLogger.CRITICAL)     #程序的运行日志
+lg.setLevel(rdkit.RDLogger.CRITICAL)  
 
 def group_node_rep(node_rep, batch_size, num_part):
     group = []
@@ -31,8 +28,8 @@ def group_node_rep(node_rep, batch_size, num_part):
     count = 0
     for i in range(batch_size):
         num_atom = num_part[i][0]
-        num_virtual_atom = num_part[i][1]
-        num_all = num_atom + num_virtual_atom + 1
+        num_motif = num_part[i][1]
+        num_all = num_atom + num_motif + 1
         group.append(node_rep[count:count + num_atom])
         super_group.append(node_rep[count + num_all -1])
         count += num_all
@@ -46,7 +43,6 @@ def train(model_list, loader, optimizer_list, device):
     model_decoder.train()
     if_auc, if_ap, type_acc, a_type_acc, a_num_rmse, b_num_rmse = 0, 0, 0, 0, 0, 0
     for step, batch in enumerate(tqdm(loader, desc="Iteration")):
-        #batch内的每个item是MolTree类型
         batch_size = len(batch)
 
         graph_batch = molgraph_to_graph_data(batch)
@@ -103,10 +99,10 @@ def main():
                         help='dropout ratio (default: 0.2)')
     parser.add_argument('--JK', type=str, default="last",
                         help='how the node features across layers are combined. last, sum, max or concat')
-    parser.add_argument('--dataset', type=str, default='pretrain_data/all.txt',
+    parser.add_argument('--dataset', type=str, default='data/all.txt',
                         help='root directory of dataset. For now, only classification.')
-    parser.add_argument('--gnn_type', type=str, default="gat")
-    parser.add_argument('--output_model_file', type=str, default='./saved_model/pre_512_gat.pth',
+    parser.add_argument('--gnn_type', type=str, default="gin")
+    parser.add_argument('--output_model_file', type=str, default='./saved_model/nolamda.pth',
                         help='filename to output the pre-trained model')
     parser.add_argument('--num_workers', type=int, default=0, help='number of workers for dataset loading')
     parser.add_argument("--hidden_size", type=int, default=512, help='hidden size')
@@ -118,8 +114,12 @@ def main():
     device = torch.device("cuda:" + str(args.device)) if torch.cuda.is_available() else torch.device("cpu")
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(0)
-
-    dataset = MoleculeDataset(args.dataset)
+        
+        
+    with open('upgrade.pkl', 'rb') as f:
+        molgraphs_dict_list = pickle.load(f)
+    molgraphs = [MyMol(molgraph_dict) for molgraph_dict in molgraphs_dict_list]
+    dataset = MyMoleculeDataset(molgraphs)
 
     loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers, collate_fn=lambda x:x, drop_last=True)
 
