@@ -94,15 +94,15 @@ def main():
     parser.add_argument('--num_layer', type=int, default=5,
                         help='number of GNN message passing layers (default: 5).')
     parser.add_argument('--emb_dim', type=int, default=512,
-                        help='embedding dimensions (default: 300)')
-    parser.add_argument('--dropout_ratio', type=float, default=0.5,
+                        help='embedding dimensions (default: 512)')
+    parser.add_argument('--dropout_ratio', type=float, default=0.3,
                         help='dropout ratio (default: 0.2)')
     parser.add_argument('--JK', type=str, default="last",
                         help='how the node features across layers are combined. last, sum, max or concat')
     parser.add_argument('--dataset', type=str, default='data/all.txt',
                         help='root directory of dataset. For now, only classification.')
     parser.add_argument('--gnn_type', type=str, default="gin")
-    parser.add_argument('--output_model_file', type=str, default='./saved_model/nolamda.pth',
+    parser.add_argument('--output_model_file', type=str, default='./saved_model/pretrain.pth',
                         help='filename to output the pre-trained model')
     parser.add_argument('--num_workers', type=int, default=0, help='number of workers for dataset loading')
     parser.add_argument("--hidden_size", type=int, default=512, help='hidden size')
