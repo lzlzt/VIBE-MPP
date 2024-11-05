@@ -25,13 +25,14 @@ supervised boosted pretraining(DSBP).
 
 | name    | version |
 | ------- | ------- |
-| numpy   |         |
-| pandas  |         |
-| sklearn |         |
-| rdkit   |         |
-|         |         |
-|         |         |
-|         |         |
+| numpy   |    1.24.4     |
+| pandas  |   1.5.3    |
+| rdkit   |   2023.9.5     |
+| torch      |    2.1.0     |
+| torch-geometric      |  2.4.0       |
+| torch-sparse        |    0.6.18     |
+| tqdm             |  4.66.1 |
+|networkx| 3.0  |
 
 
 
