@@ -336,7 +336,6 @@ def cv_random_split(dataset, fold_idx = 0,
 
     skf = StratifiedKFold(n_splits=10, shuffle = True, random_state = seed)
 
-    # labels = [data.y.item() for data in dataset]
     labels = [data.y.item()//100 for data in dataset]
 
     idx_list = []
