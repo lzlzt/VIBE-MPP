@@ -119,3 +119,19 @@ def is_ring(mol, atom_idx1, atom_idx2):
             if atom_idx1 in ring and atom_idx2 in ring:
                 return True
     return False
+
+
+def get_van_der_waals_force(r, sigma=3.4, epsilon=0.238):
+    return 4 * epsilon * ((sigma / r)**12 - (sigma / r)**6)
+
+def get_bond_strength(distances):
+    dim = distances.shape[0]
+    van_der_waals_forces = np.zeros((dim,dim))
+    for i in range(dim):
+        for j in range(i+1,dim):
+            van_der_waals_force = get_van_der_waals_force(distances[i][j])
+            van_der_waals_forces[i][j] = van_der_waals_forces[j][i] = van_der_waals_force
+    flattened_forces = van_der_waals_forces.flatten()
+    strengths = pd.qcut(flattened_forces, q=10, labels=False,duplicates="drop") + 1  # 分类标签从1开始
+    strengths = strengths.reshape(dim, dim)
+    return strengths
