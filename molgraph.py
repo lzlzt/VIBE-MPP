@@ -8,10 +8,8 @@ import math
 from utils import * 
 
 
-
-
-threshold = 10       
-conf_nums = 20     
+threshold = 10   
+conf_nums = 20    
 
 
 
@@ -59,10 +57,7 @@ class MyMol():
 
     def size_bond(self):
         return self.size_bon
-        
-    
-
-        
+                
         
 class MyMoleculeDataset(Dataset):
 
@@ -78,14 +73,14 @@ class MyMoleculeDataset(Dataset):
 
 # allowable node and edge features
 allowable_features = {
-    'possible_atomic_num_list': list(range(1, 119)),  
+    'possible_atomic_num_list': list(range(1, 119)), 
     'possible_formal_charge_list': [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5],
     'possible_chirality_list': [
         Chem.rdchem.ChiralType.CHI_UNSPECIFIED,
         Chem.rdchem.ChiralType.CHI_TETRAHEDRAL_CW,
         Chem.rdchem.ChiralType.CHI_TETRAHEDRAL_CCW,
         Chem.rdchem.ChiralType.CHI_OTHER
-    ],   
+    ],  
     'possible_hybridization_list': [
         Chem.rdchem.HybridizationType.S,
         Chem.rdchem.HybridizationType.SP, Chem.rdchem.HybridizationType.SP2,
@@ -95,19 +90,19 @@ allowable_features = {
     'possible_numH_list': [0, 1, 2, 3, 4, 5, 6, 7, 8],
     'possible_implicit_valence_list': [0, 1, 2, 3, 4, 5, 6],
     'possible_degree_list': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-    'possible_bonds': [                          
+    'possible_bonds': [                     
         Chem.rdchem.BondType.SINGLE,
         Chem.rdchem.BondType.DOUBLE,
         Chem.rdchem.BondType.TRIPLE,
         Chem.rdchem.BondType.AROMATIC
     ],
     'possible_bond_dirs': [  # only for double bond stereo information
-        Chem.rdchem.BondDir.NONE,              
+        Chem.rdchem.BondDir.NONE,             
         Chem.rdchem.BondDir.ENDUPRIGHT,        
         Chem.rdchem.BondDir.ENDDOWNRIGHT      
     ],
     'possible_bond_inring': [None, False, True],
-    'possible_bond_strength' :[0, 1,2,3,4,5,6,7,8,9,10, 200]
+    'possible_bond_strength' :[0, 1,2,3,4,5,6,7,8,9,10, 200] 
 }
 
 
@@ -125,7 +120,7 @@ class MolGraph(object):
 
             atom_features_list.append(atom_feature)
 
-      
+
         self.x_nosuper = torch.tensor(np.array(atom_features_list), dtype=torch.long)
 
         # bonds
@@ -157,10 +152,10 @@ class MolGraph(object):
             self.edge_index_nosuper = torch.empty((2, 0), dtype=torch.long)  # edgeCOO索引，[[row索引],[col索引]]
             self.edge_attr_nosuper = torch.empty((0, num_bond_features), dtype=torch.long)
 
-       
+     
         num_atoms = self.x_nosuper.size(0) 
 
-      
+       
         super_x = torch.tensor([[119, 0]]).to(self.x_nosuper.device)
         virtual_mol = get_virtual_mol(self.mol)
         virtual_num_atoms = virtual_mol.GetNumAtoms()
@@ -173,14 +168,14 @@ class MolGraph(object):
             strengths = []
 
             self.distances = get_distance(self.mol,self.conf)
-           
+            strength = get_bond_strength(self.distances)
             n = min(virtual_num_atoms,num_atoms)
             for i in range(n):
                 for j in range(i + 1, n):
                     atom_i = self.mol.GetAtomWithIdx(i)
                     atom_j = self.mol.GetAtomWithIdx(j)
                     bond = self.mol.GetBondBetweenAtoms(i, j)
-                    dist = self.distances[i, j]
+                    dist = self.distances[i, j]  
                     if bond is not None:
                         pass
                     else:
@@ -189,12 +184,12 @@ class MolGraph(object):
                         else:
                             if not is_ring(self.mol,atom_i,atom_j):
                                 virtual_edge_index = virtual_edge_index + [[i,num_atoms + j]] + [[j,num_atoms + i]]
-                                strength = (10 - math.floor(dist))
-                                strengths.append(strength)
-                                strengths.append(strength)
+                                strengths.append(strength[i,j])
+                                strengths.append(strength[j,i])
 
             virtual_edge_index = torch.tensor(np.array(virtual_edge_index).T, dtype=torch.long).to(self.edge_index_nosuper.device)
 
+            
             super_edge_index = [[i, num_atoms + virtual_num_atoms] for i in range(num_atoms)]
             super_edge_index = torch.tensor(np.array(super_edge_index).T, dtype=torch.long).to(
                     self.edge_index_nosuper.device)
@@ -203,16 +198,19 @@ class MolGraph(object):
 
 
             virtual_edge_attr = torch.zeros(virtual_edge_index.size()[1], 3)
+           
+
 
             virtual_edge_attr[:, 0] = 6  # bond type for self-loop edge
-          
+        
             virtual_edge_attr[:len(strengths), -1] = torch.tensor(strengths).to(virtual_edge_attr.device)
             virtual_edge_attr = virtual_edge_attr.to(self.edge_attr_nosuper.dtype).to(self.edge_attr_nosuper.device)
-            
-           
+       
+
+          
             super_edge_attr = torch.zeros(super_edge_index.size()[1], 3)
 
-         
+            # super_edge_attr = torch.zeros(virtual_num_atoms, 2)
             super_edge_attr[:, 0] = 5  # bond type for self-loop edge
             super_edge_attr[:, 2] = 0 
             super_edge_attr = super_edge_attr.to(self.edge_attr_nosuper.dtype).to(self.edge_attr_nosuper.device)
