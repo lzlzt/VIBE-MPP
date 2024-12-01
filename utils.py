@@ -116,6 +116,6 @@ def get_bond_strength(distances):
             van_der_waals_force = get_van_der_waals_force(distances[i][j])
             van_der_waals_forces[i][j] = van_der_waals_forces[j][i] = van_der_waals_force
     flattened_forces = van_der_waals_forces.flatten()
-    strengths = pd.qcut(flattened_forces, q=10, labels=False,duplicates="drop") + 1  # 分类标签从1开始
+    strengths = pd.qcut(flattened_forces, q=10, labels=False,duplicates="drop") + 1
     strengths = strengths.reshape(dim, dim)
     return strengths
