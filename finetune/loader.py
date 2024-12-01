@@ -123,6 +123,7 @@ def mol_to_graph_data_obj_simple(smiles):
 
         virtual_edge_index = []
         strengths = []
+        strength = get_bond_strength(distances)
 
        
         n = min(num_atoms,virtual_num_atoms)
@@ -140,9 +141,8 @@ def mol_to_graph_data_obj_simple(smiles):
                     else:
                         if not is_ring(mol,atom_i,atom_j):
                             virtual_edge_index = virtual_edge_index + [[i,num_atoms + j]] + [[j,num_atoms + i]]
-                            strength = (10 - math.floor(dist))
-                            strengths.append(strength)
-                            strengths.append(strength) 
+                            strengths.append(strength[i,j])
+                            strengths.append(strength[j,i])
         virtual_edge_index = torch.tensor(np.array(virtual_edge_index).T, dtype=torch.long).to(edge_index_nosuper.device)
 
         super_edge_index = [[i, num_atoms + virtual_num_atoms] for i in range(num_atoms)]
