@@ -38,7 +38,7 @@ supervised boosted pretraining(DSBP).
 
 ## Usage
 
-### Tranning
+### Training
 
 You can pretrain the model by
 
